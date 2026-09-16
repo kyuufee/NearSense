@@ -17,6 +17,7 @@
   <!-- Retro CRT Scanline & Pixel Grid Ambient FX -->
   <div class="crt-scanlines"></div>
   <div class="pixel-vignette"></div>
+
   <div class="app-container">
     <!-- TOP NAVIGATION & RETRO ARCADE HEADER -->
     <header class="app-header pixel-panel">
@@ -31,6 +32,7 @@
           <p class="sub-title">Ultrasonic Proximity Detection System & Telemetry Dashboard</p>
         </div>
       </div>
+
       <!-- Action buttons & Connection status -->
       <div class="header-actions">
         <!-- Live Connection Status Pill -->
@@ -38,38 +40,44 @@
           <span class="status-dot pixel-dot"></span>
           <span id="connectionStatusText">ไม่ได้เชื่อมต่อ (OFFLINE)</span>
         </div>
+
         <!-- Web Serial Connect Button -->
         <button id="btnConnectSerial" class="btn btn-pixel btn-primary" title="เชื่อมต่อบอร์ด KidBright32 ผ่านสาย USB (Web Serial)">
           <span class="btn-pixel-icon">🔌</span>
           <span id="btnConnectSerialText">เชื่อมต่อ USB (Serial)</span>
         </button>
+
         <!-- Demo Mode Toggle Button -->
         <button id="btnToggleDemo" class="btn btn-pixel btn-secondary" title="เปิดโหมดจำลองระยะสำหรับทดสอบโดยไม่ต้องใช้บอร์ด">
           <span class="btn-pixel-icon">🎮</span>
           <span>โหมดจำลอง (Demo)</span>
         </button>
+
         <!-- Audio Sound Toggle -->
         <button id="btnToggleAudio" class="btn btn-pixel btn-icon-only" title="เปิด/ปิดเสียงลำโพงจำลอง Buzzer (2,700Hz)">
           <svg id="iconAudioOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polygon points="11 5 6 9 2 9 2 15 6 11 19 11 5" fill="currentColor"></polygon>
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
             <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
           </svg>
           <svg id="iconAudioOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:none;">
-            <polygon points="11 5 6 9 2 9 2 15 6 11 19 11 5" fill="currentColor"></polygon>
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
             <line x1="23" y1="9" x2="17" y2="15"></line>
             <line x1="17" y1="9" x2="23" y2="15"></line>
           </svg>
         </button>
+
         <!-- Hardware Pinout Info Button -->
         <button id="btnOpenPinout" class="btn btn-pixel btn-icon-only" title="ดูผังการต่อวงจรและขาพิน KidBright32 + HC-SR04">
           <span class="btn-pixel-icon">⚙️</span>
         </button>
+
         <!-- Toggle Info Panel Button -->
         <button id="btnToggleManual" class="btn btn-pixel btn-icon-only info-toggle" title="ดูคำอธิบายระบบและคู่มือโครงงานภาษาไทย">
           <span class="btn-pixel-icon">📖</span>
         </button>
       </div>
     </header>
+
     <!-- PROJECT EXPLANATION & QUEST MANUAL (THAI) -->
     <section id="projectManualCard" class="card pixel-panel project-manual-card">
       <div class="manual-header">
@@ -80,6 +88,7 @@
         </div>
         <button id="btnCollapseManual" class="btn-pixel-text" title="ย่อ/ขยายคำอธิบาย">[ ซ่อน/แสดง ]</button>
       </div>
+
       <div id="manualContent" class="manual-content">
         <!-- Banner Intro -->
         <div class="manual-intro-box pixel-box-inset">
@@ -89,9 +98,10 @@
           <p class="intro-desc">
             โครงงานนี้ใช้ไมโครคอนโทรลเลอร์ <strong>KidBright32 (ESP32)</strong> เชื่อมต่อกับเซนเซอร์วัดระยะทางคลื่นเสียงอัลตราโซนิก 
             <strong>HC-SR04</strong> (Trig พิน 18, Echo พิน 19) เพื่อตรวจจับสิ่งกีดขวางหรือวัตถุที่เคลื่อนที่เข้ามาใกล้ในแบบเรียลไทม์ 
-            พร้อมแจ้งเตือนผ่านหลอดไฟ LED WIFI และลำโพง Buzzer ความถี่ 2,700 Hz บนบอร์ด และส่งข้อมูลระยะทาง (cm) มาแสดงผลบนหน้าจอเว็บผ่าน <strong>Web Serial API</strong>
+            พร้อมแจ้งเตือนผ่านหลอดไฟ LED และลำโพง Buzzer ความถี่ 2,700 Hz บนบอร์ด และส่งข้อมูลระยะทาง (cm) มาแสดงผลบนหน้าจอเว็บผ่าน <strong>Web Serial API</strong>
           </p>
         </div>
+
         <!-- 3 Security Zones Explanation Grid -->
         <div class="manual-zones-grid">
           <!-- Zone 1: Safe -->
@@ -107,6 +117,7 @@
             </p>
             <div class="zone-action-pill">สถานะ: ปลอดภัยปกติ (NORMAL)</div>
           </div>
+
           <!-- Zone 2: Warning -->
           <div class="zone-info-card warning-border">
             <div class="zone-badge-tag warning-tag">
@@ -115,11 +126,12 @@
             </div>
             <div class="zone-range-title">7 - 18 เซนติเมตร</div>
             <p class="zone-detail">
-              ตรวจพบวัตถุเริ่มเคลื่อนเข้าใกล้ระยะเตือน หลอดไฟ LED WIFI และเสียงลำโพง Buzzer จะกระพริบเป็นจังหวะ 
+              ตรวจพบวัตถุเริ่มเคลื่อนเข้าใกล้ระยะเตือน หลอดไฟ LED และเสียงลำโพง Buzzer จะกระพริบเป็นจังหวะ 
               ยิ่งวัตถุเข้าใกล้มาก จังหวะจะยิ่งถี่ขึ้นตามสมการคำนวณ <code>map(cm, 7, 18, 70, 300) ms</code>
             </p>
             <div class="zone-action-pill">สถานะ: เสียงและไฟกระพริบตามระยะ</div>
           </div>
+
           <!-- Zone 3: Danger -->
           <div class="zone-info-card danger-border">
             <div class="zone-badge-tag danger-tag">
@@ -129,11 +141,12 @@
             <div class="zone-range-title">&le; 6 เซนติเมตร</div>
             <p class="zone-detail">
               วัตถุเข้าใกล้ชิดจนเสี่ยงเกิดการชน/สัมผัส ระบบส่งเสียงสัญญาณ Buzzer 2,700Hz ดังค้างต่อเนื่องตลอดเวลา 
-              และเปิดหลอดไฟ LED WIFI (พิน 2) สว่างค้างจนกว่าวัตถุจะถอยออกไป
+              และเปิดหลอดไฟ LED WIFI (พิน 2) กับ LED NTP (พิน 4) สว่างค้างจนกว่าวัตถุจะถอยออกไป
             </p>
             <div class="zone-action-pill">สถานะ: ร้องเตือนค้าง + ไฟติดค้าง!</div>
           </div>
         </div>
+
         <!-- System Features & Quick Tips -->
         <div class="manual-quick-guide">
           <div class="guide-item">
@@ -160,6 +173,7 @@
         </div>
       </div>
     </section>
+
     <!-- SIMULATION DOCK (Visible when Demo mode is ON) -->
     <div id="simulationDock" class="simulation-dock pixel-panel hidden">
       <div class="sim-header">
@@ -182,8 +196,10 @@
         <span id="simSliderVal" class="sim-slider-val pixel-font">30.0 cm</span>
       </div>
     </div>
+
     <!-- MAIN DASHBOARD CONTENT -->
     <main class="dashboard-grid">
+
       <!-- ROW 1: PRIMARY METRIC CARDS -->
       <section class="metrics-row">
         <!-- CARD 1: CURRENT DISTANCE & STATUS -->
@@ -218,6 +234,7 @@
             </div>
           </div>
         </div>
+
         <!-- CARD 2: KIDBRIGHT HARDWARE SIMULATION -->
         <div class="card pixel-panel metric-card">
           <div class="card-header">
@@ -227,7 +244,7 @@
             </div>
             <span class="hardware-chip pixel-chip">ESP32 CORE</span>
           </div>
-          <div class="hardware-status-grid hw-two-items">
+          <div class="hardware-status-grid">
             <!-- LED WIFI (Pin 2) -->
             <div class="hw-item pixel-hw-box" id="hwLedWifi">
               <div class="hw-led-bulb pixel-bulb blue"></div>
@@ -236,6 +253,16 @@
                 <span class="hw-state pixel-font" id="txtLedWifiState">ดับ (HIGH)</span>
               </div>
             </div>
+
+            <!-- LED NTP (Pin 4) -->
+            <div class="hw-item pixel-hw-box" id="hwLedNtp">
+              <div class="hw-led-bulb pixel-bulb yellow"></div>
+              <div class="hw-details">
+                <span class="hw-label">LED NTP (พิน 4)</span>
+                <span class="hw-state pixel-font" id="txtLedNtpState">ดับ (HIGH)</span>
+              </div>
+            </div>
+
             <!-- BUZZER (Pin 13) -->
             <div class="hw-item pixel-hw-box" id="hwBuzzer">
               <div class="hw-buzzer-icon">
@@ -256,6 +283,7 @@
             <span id="txtBeepInterval">จังหวะ: --</span>
           </div>
         </div>
+
         <!-- CARD 3: SESSION TELEMETRY STATS -->
         <div class="card pixel-panel metric-card">
           <div class="card-header">
@@ -293,6 +321,7 @@
           </div>
         </div>
       </section>
+
       <!-- ROW 2: RADAR VISUALIZER & LIVE TIMELINE CHART -->
       <section class="visualizers-row">
         <!-- RADAR VISUALIZER -->
@@ -316,6 +345,7 @@
             </div>
           </div>
         </div>
+
         <!-- REAL-TIME TIMELINE CHART -->
         <div class="card pixel-panel visualizer-card">
           <div class="card-header">
@@ -333,6 +363,7 @@
           </div>
         </div>
       </section>
+
       <!-- ROW 3: EVENT LOG & HISTORY TABLE -->
       <section class="events-row">
         <div class="card pixel-panel">
@@ -353,6 +384,7 @@
               </button>
             </div>
           </div>
+
           <!-- Event Log Table -->
           <div class="table-responsive pixel-table-wrap">
             <table class="event-table">
@@ -374,7 +406,9 @@
           </div>
         </div>
       </section>
+
     </main>
+
     <!-- FOOTER -->
     <footer class="app-footer pixel-panel">
       <div class="footer-info">
@@ -384,13 +418,14 @@
         <span>&bull;</span>
         <span>HC-SR04 (Trig: 18, Echo: 19)</span>
         <span>&bull;</span>
-        <span>Buzzer: 13 | LED_WIFI: 2</span>
+        <span>Buzzer: 13 | LED_WIFI: 2 | LED_NTP: 4</span>
       </div>
       <div class="footer-links">
         <span class="baud-note pixel-font">Baudrate: 115,200 bps &bull; Web Serial API &bull; 8-Bit Edition</span>
       </div>
     </footer>
   </div>
+
   <!-- HARDWARE PINOUT MODAL (RETRO RPG DIALOG STYLE) -->
   <div id="pinoutModal" class="modal-overlay hidden">
     <div class="modal-card pixel-panel modal-pixel">
@@ -451,6 +486,12 @@
                   <td><span class="pin-badge board pixel-tag">พิน 2 (Active LOW)</span></td>
                   <td>หลอด LED สีน้ำเงินบนบอร์ด</td>
                 </tr>
+                <tr>
+                  <td>บนบอร์ด</td>
+                  <td><strong>LED NTP</strong></td>
+                  <td><span class="pin-badge board pixel-tag">พิน 4 (Active LOW)</span></td>
+                  <td>หลอด LED สีเหลืองบนบอร์ด</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -493,7 +534,7 @@
             <h4 class="pixel-section-head">ตรรกะการทำงาน (FIRMWARE LOGIC)</h4>
             <div class="logic-item danger pixel-box-inset">
               <strong>🔴 ระยะวิกฤต (&le; 6 cm):</strong>
-              <p>เสียงปี๊บค้างยาว 2700Hz ต่อเนื่อง, หลอดไฟ LED WIFI ติดสว่างค้าง (ส่งสัญญาณ LOW)</p>
+              <p>เสียงปี๊บค้างยาว 2700Hz ต่อเนื่อง, หลอดไฟ LED WIFI และ NTP ติดสว่างค้าง (ส่งสัญญาณ LOW)</p>
             </div>
             <div class="logic-item warning pixel-box-inset">
               <strong>🟡 ระยะเตือน (7 - 18 cm):</strong>
@@ -508,6 +549,7 @@
       </div>
     </div>
   </div>
+
   <script src="app.js"></script>
 </body>
 </html>
