@@ -57,7 +57,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  image-rendering: pixelated;
 }
 
 body.pixel-theme {
@@ -65,18 +64,18 @@ body.pixel-theme {
   background-color: var(--bg-space);
   color: var(--text-main);
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.55;
   overflow-x: hidden;
   position: relative;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.015em;
   background-image: 
-    radial-gradient(#1e2638 1px, transparent 1px),
-    linear-gradient(to bottom, #0b0d14 0%, #10141f 100%);
+    radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, #0a0e18 0%, #0e1422 100%);
   background-size: 24px 24px, 100% 100%;
 }
 
 /* ==========================================================================
-   RETRO CRT SCANLINE & VIGNETTE
+   RETRO CRT SCANLINE & VIGNETTE (Gentle & Eye-Friendly)
    ========================================================================== */
 .crt-scanlines {
   position: fixed;
@@ -88,10 +87,10 @@ body.pixel-theme {
   z-index: 999;
   background: linear-gradient(
     rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.22) 50%
+    rgba(0, 0, 0, 0.12) 50%
   );
   background-size: 100% 4px;
-  opacity: 0.7;
+  opacity: 0.07; /* สบายตาขึ้น ไม่ซ้อนทับตัวหนังสือจนตาลาย */
 }
 
 .pixel-vignette {
@@ -99,7 +98,7 @@ body.pixel-theme {
   inset: 0;
   pointer-events: none;
   z-index: 998;
-  background: radial-gradient(circle at center, transparent 65%, rgba(0, 0, 0, 0.6) 100%);
+  background: radial-gradient(circle at center, transparent 72%, rgba(0, 0, 0, 0.28) 100%);
 }
 
 /* Main Container */
@@ -885,40 +884,46 @@ body.pixel-theme {
 .hardware-status-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .pixel-hw-box {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
-  background: #0f1422;
-  border: 2px solid #202b40;
-  box-shadow: 2px 2px 0px #000;
-  transition: var(--trans-quick);
+  gap: 16px;
+  padding: 13px 16px;
+  background: #0f1525;
+  border: 2px solid #23314d;
+  box-shadow: 2px 2px 0px #04060b;
+  border-radius: 4px;
+  transition: var(--trans-smooth);
 }
+
+.pixel-hw-box:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: #131c31;
+}
+
 .pixel-hw-box.active {
-  background: #172036;
-  border-color: #3b82f6;
+  background: #162442;
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), 2px 2px 0px #000;
 }
 
 .pixel-bulb {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
   background: #1e293b;
   border: 2px solid #475569;
-  box-shadow: inset 1px 1px 0px #fff;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  transition: var(--trans-smooth);
 }
 .pixel-bulb.blue.active {
   background: #00f0ff;
   border-color: #ffffff;
-  box-shadow: 0 0 14px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.8);
-}
-.pixel-bulb.yellow.active {
-  background: #ffcc00;
-  border-color: #ffffff;
-  box-shadow: 0 0 14px #ffcc00, 0 0 20px rgba(255, 204, 0, 0.8);
+  box-shadow: 0 0 12px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.7);
 }
 
 .hw-buzzer-icon {

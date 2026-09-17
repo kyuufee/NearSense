@@ -141,7 +141,7 @@
             <div class="zone-range-title">&le; 6 เซนติเมตร</div>
             <p class="zone-detail">
               วัตถุเข้าใกล้ชิดจนเสี่ยงเกิดการชน/สัมผัส ระบบส่งเสียงสัญญาณ Buzzer 2,700Hz ดังค้างต่อเนื่องตลอดเวลา 
-              และเปิดหลอดไฟ LED WIFI (พิน 2) กับ LED NTP (พิน 4) สว่างค้างจนกว่าวัตถุจะถอยออกไป
+              และเปิดหลอดไฟ LED WIFI (พิน 2) สว่างค้างจนกว่าวัตถุจะถอยออกไป
             </p>
             <div class="zone-action-pill">สถานะ: ร้องเตือนค้าง + ไฟติดค้าง!</div>
           </div>
@@ -251,15 +251,6 @@
               <div class="hw-details">
                 <span class="hw-label">LED WIFI (พิน 2)</span>
                 <span class="hw-state pixel-font" id="txtLedWifiState">ดับ (HIGH)</span>
-              </div>
-            </div>
-
-            <!-- LED NTP (Pin 4) -->
-            <div class="hw-item pixel-hw-box" id="hwLedNtp">
-              <div class="hw-led-bulb pixel-bulb yellow"></div>
-              <div class="hw-details">
-                <span class="hw-label">LED NTP (พิน 4)</span>
-                <span class="hw-state pixel-font" id="txtLedNtpState">ดับ (HIGH)</span>
               </div>
             </div>
 
@@ -418,7 +409,7 @@
         <span>&bull;</span>
         <span>HC-SR04 (Trig: 18, Echo: 19)</span>
         <span>&bull;</span>
-        <span>Buzzer: 13 | LED_WIFI: 2 | LED_NTP: 4</span>
+        <span>Buzzer: 13 | LED_WIFI: 2</span>
       </div>
       <div class="footer-links">
         <span class="baud-note pixel-font">Baudrate: 115,200 bps &bull; Web Serial API &bull; 8-Bit Edition</span>
@@ -486,12 +477,6 @@
                   <td><span class="pin-badge board pixel-tag">พิน 2 (Active LOW)</span></td>
                   <td>หลอด LED สีน้ำเงินบนบอร์ด</td>
                 </tr>
-                <tr>
-                  <td>บนบอร์ด</td>
-                  <td><strong>LED NTP</strong></td>
-                  <td><span class="pin-badge board pixel-tag">พิน 4 (Active LOW)</span></td>
-                  <td>หลอด LED สีเหลืองบนบอร์ด</td>
-                </tr>
               </tbody>
             </table>
           </div>
@@ -534,7 +519,7 @@
             <h4 class="pixel-section-head">ตรรกะการทำงาน (FIRMWARE LOGIC)</h4>
             <div class="logic-item danger pixel-box-inset">
               <strong>🔴 ระยะวิกฤต (&le; 6 cm):</strong>
-              <p>เสียงปี๊บค้างยาว 2700Hz ต่อเนื่อง, หลอดไฟ LED WIFI และ NTP ติดสว่างค้าง (ส่งสัญญาณ LOW)</p>
+              <p>เสียงปี๊บค้างยาว 2700Hz ต่อเนื่อง, หลอดไฟ LED WIFI ติดสว่างค้าง (ส่งสัญญาณ LOW)</p>
             </div>
             <div class="logic-item warning pixel-box-inset">
               <strong>🟡 ระยะเตือน (7 - 18 cm):</strong>
