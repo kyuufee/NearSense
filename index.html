@@ -12,6 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Press+Start+2P&family=Prompt:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
+  <!-- MQTT.js over WebSockets for Wireless IoT -->
+  <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 </head>
 <body class="pixel-theme">
   <!-- Retro CRT Scanline & Pixel Grid Ambient FX -->
@@ -44,7 +46,13 @@
         <!-- Web Serial Connect Button -->
         <button id="btnConnectSerial" class="btn btn-pixel btn-primary" title="เชื่อมต่อบอร์ด KidBright32 ผ่านสาย USB (Web Serial)">
           <span class="btn-pixel-icon">🔌</span>
-          <span id="btnConnectSerialText">เชื่อมต่อ USB (Serial)</span>
+          <span id="btnConnectSerialText">เชื่อมต่อสาย USB</span>
+        </button>
+
+        <!-- Wireless WiFi / MQTT Button -->
+        <button id="btnOpenMqtt" class="btn btn-pixel btn-mqtt" title="เชื่อมต่อบอร์ด KidBright32 ไร้สายผ่าน WiFi (MQTT)">
+          <span class="btn-pixel-icon">🌐</span>
+          <span id="btnOpenMqttText">เชื่อมต่อออนไลน์ (WiFi)</span>
         </button>
 
         <!-- Demo Mode Toggle Button -->
@@ -529,6 +537,109 @@
               <strong>🟢 ระยะปลอดภัย (&gt; 18 cm):</strong>
               <p>ปิดหลอดไฟทั้งหมด (ส่งสัญญาณ HIGH) และปิดเสียง Buzzer ทันที</p>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIRELESS WIFI & MQTT MODAL (RETRO RPG DIALOG STYLE) -->
+  <div id="mqttModal" class="modal-overlay hidden">
+    <div class="modal-card pixel-panel modal-pixel mqtt-modal-card">
+      <div class="modal-header">
+        <div class="header-with-badge">
+          <span class="pixel-icon">🌐</span>
+          <h3>เชื่อมต่อบอร์ดไร้สายผ่าน WiFi (MQTT Cloud)</h3>
+        </div>
+        <button id="btnCloseMqttModal" class="btn-close pixel-btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="mqtt-grid">
+          <!-- Status & Info Box -->
+          <div class="mqtt-status-box pixel-box-inset">
+            <div class="mqtt-status-row">
+              <div class="mqtt-broker-info">
+                <span class="label-dim">MQTT Broker:</span>
+                <span class="broker-badge pixel-font">broker.hivemq.com (Port: 8884 SSL / 1883 TCP)</span>
+              </div>
+              <div id="modalMqttStatus" class="status-pill disconnected">
+                <span class="status-dot pixel-dot"></span>
+                <span id="modalMqttStatusText">ไม่ได้เชื่อมต่อ</span>
+              </div>
+            </div>
+            <p class="mqtt-help-text">
+              เชื่อมต่อบอร์ด KidBright32 ผ่านเครือข่าย WiFi บ้านหรือฮอตสปอตมือถือ โดยส่งข้อมูลผ่าน HiveMQ Broker ฟรี 
+              หน้าเว็บจะรับค่าระยะทางสดแบบ Real-time จากทุกที่ในโลกโดยไม่ต้องเสียบสาย USB
+            </p>
+          </div>
+
+          <!-- Topic Configuration -->
+          <div class="mqtt-config-card pixel-hw-box">
+            <label for="mqttTopicInput" class="mqtt-field-label">
+              <span class="pixel-star">★</span>
+              <strong>ชื่อ Topic สำหรับรับ-ส่งข้อมูล (Device Topic):</strong>
+            </label>
+            <div class="topic-input-group">
+              <input type="text" id="mqttTopicInput" class="pixel-input" value="kidbright32/proximity/default" placeholder="เช่น kidbright32/proximity/kb_1234">
+              <button id="btnRandomTopic" class="btn-pixel btn-pixel-small" title="สุ่ม Topic ประจำเครื่องใหม่เพื่อไม่ให้ซ้ำกับคนอื่น">🎲 สุ่มชื่อใหม่</button>
+              <button id="btnCopyTopic" class="btn-pixel btn-pixel-small" title="คัดลอกชื่อ Topic">📋 คัดลอก</button>
+            </div>
+            <span class="field-hint">💡 แนะนำกดปุ่ม "สุ่มชื่อใหม่" หรือตั้งชื่อเฉพาะตนเอง เพื่อป้องกันไม่ให้ข้อมูลซ้ำกับผู้อื่นในเน็ต</span>
+          </div>
+
+          <!-- Action Connect Button -->
+          <div class="mqtt-action-bar">
+            <button id="btnToggleMqttConnect" class="btn btn-pixel btn-mqtt btn-large">
+              <span class="btn-pixel-icon">⚡</span>
+              <span id="btnToggleMqttConnectText">เริ่มรับข้อมูลไร้สาย (Connect MQTT)</span>
+            </button>
+          </div>
+
+          <!-- Quick Guide -->
+          <div class="mqtt-guide-wrap">
+            <h4 class="pixel-section-head">ขั้นตอนการเปิดใช้งานบนบอร์ด KidBright32</h4>
+            <div class="steps-grid">
+              <div class="step-card pixel-hw-box">
+                <span class="step-num pixel-font">1</span>
+                <div class="step-text">
+                  <strong>ลงไลบรารี PubSubClient</strong>
+                  <p>ใน Arduino IDE ไปที่ Library Manager ค้นหา <code>PubSubClient</code> แล้วกด Install</p>
+                </div>
+              </div>
+              <div class="step-card pixel-hw-box">
+                <span class="step-num pixel-font">2</span>
+                <div class="step-text">
+                  <strong>เปิดไฟล์ KidBright_WiFi_MQTT.ino</strong>
+                  <p>เปิดไฟล์ที่มีในโฟลเดอร์ หรือกดปุ่มคัดลอกโค้ดด้านล่างไปวางใน Arduino IDE</p>
+                </div>
+              </div>
+              <div class="step-card pixel-hw-box">
+                <span class="step-num pixel-font">3</span>
+                <div class="step-text">
+                  <strong>ตั้งค่า WiFi & Topic</strong>
+                  <p>ใส่ชื่อ WiFi บ้าน/ฮอตสปอต และตั้ง Topic ให้ตรงกับช่องด้านบนนี้</p>
+                </div>
+              </div>
+              <div class="step-card pixel-hw-box">
+                <span class="step-num pixel-font">4</span>
+                <div class="step-text">
+                  <strong>อัปโหลดลงบอร์ด & พร้อมใช้งาน</strong>
+                  <p>เบิร์นโค้ดลง KidBright32 บอร์ดจะต่อเน็ตส่งค่าระยะทางขึ้นหน้าจอเรดาร์นี้ทันที!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arduino Code Container -->
+          <div class="arduino-code-container pixel-box-inset">
+            <div class="code-header">
+              <div class="code-title">
+                <span class="pixel-icon">📄</span>
+                <strong>โค้ด Arduino / ESP32 (Topic ปรับตามที่คุณตั้งด้านบนอัตโนมัติ):</strong>
+              </div>
+              <button id="btnCopyArduinoCode" class="btn-pixel btn-pixel-small btn-primary">📋 คัดลอกโค้ดทั้งหมด</button>
+            </div>
+            <pre class="code-block"><code id="arduinoCodeSnippet"></code></pre>
           </div>
         </div>
       </div>

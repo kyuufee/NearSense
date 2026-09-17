@@ -41,12 +41,35 @@
 
 ## 🌟 ฟีเจอร์หลักของเว็บแดชบอร์ด (Web Features)
 
-1. **Web Serial Connection:** เชื่อมต่อตรงกับบอร์ด KidBright32 ผ่านพอร์ต USB (Baudrate: 115,200 bps) โดยไม่ต้องติดตั้งโปรแกรมเซิร์ฟเวอร์เสริม
+1. **Dual-Connection Mode (เลือกเชื่อมต่อได้ 2 รูปแบบ):**
+   - 🔌 **Web Serial Connection:** เชื่อมต่อตรงกับบอร์ดผ่านสาย USB (Baudrate: 115,200 bps) บน Google Chrome / MS Edge โดยไม่ต้องลงโปรแกรมเสริม
+   - 🌐 **Wireless WiFi & MQTT IoT:** เชื่อมต่อแบบไร้สายผ่าน WiFi บ้านหรือฮอตสปอตมือถือ ส่งข้อมูลผ่าน HiveMQ Public Broker ฟรี (WebSocket SSL) วางบอร์ดไว้ที่ไหนก็ส่งข้อมูลขึ้นหน้าเว็บได้จากทุกที่
 2. **Interactive Radar Scanner:** หน้าจอเรดาร์แสดงมุมตรวจจับแบบกรวยเสียง 30 องศา (Concentric Arcs) และจุดเป้าหมายแบบ Pixel Blip
 3. **Distance Timeline Chart:** กราฟเส้นแสดงสถิติระยะทางย้อนหลัง 30 วินาทีล่าสุดแบบเรียลไทม์
 4. **Demo Simulation Mode:** โหมดจำลองระยะทางสำหรับทดสอบหน้าเว็บโดยไม่ต้องเสียบบอร์ดจริง พร้อมปุ่มเดินหน้า-ถอยหลังอัตโนมัติ (Auto-walk)
 5. **Web Audio Buzzer:** จำลองเสียงลำโพง piezo บนบอร์ดที่ความถี่ 2,700Hz
 6. **Proximity Event Log & CSV Export:** บันทึกเวลาและระยะเมื่อวัตถุเข้าสู่ระยะเตือน พร้อมปุ่มดาวน์โหลดไฟล์ CSV สำหรับเปิดใน Microsoft Excel
+
+---
+
+## 🌐 วิธีเชื่อมต่อแบบไร้สายผ่าน WiFi (MQTT)
+
+1. เปิดโปรแกรม **Arduino IDE** บนคอมพิวเตอร์
+2. ไปที่เมนู **Sketch > Include Library > Manage Libraries...** ค้นหาและติดตั้งไลบรารี `PubSubClient` by Nick O'Leary
+3. เปิดไฟล์โค้ด `KidBright_WiFi_MQTT.ino` ที่อยู่ในโฟลเดอร์นี้
+4. แก้ไขชื่อ WiFi และรหัสผ่านในโค้ด:
+   ```cpp
+   const char* ssid     = "ชื่อWiFiของคุณ";
+   const char* password = "รหัสผ่านWiFi";
+   ```
+5. กดปุ่ม **"🌐 ไร้สาย (WiFi/MQTT)"** บนหน้าเว็บแดชบอร์ด เพื่อดูชื่อ **Topic** ที่เว็บสร้างให้ (เช่น `kidbright32/proximity/kb_xxxx`) หรือกดปุ่ม "สุ่มชื่อใหม่"
+6. นำชื่อ Topic ไปใส่ในโค้ด Arduino:
+   ```cpp
+   const char* mqtt_topic = "kidbright32/proximity/kb_xxxx";
+   ```
+7. อัปโหลดโค้ดลงบอร์ด KidBright32
+8. บนหน้าเว็บ กดปุ่ม **"⚡ เริ่มรับข้อมูลไร้สาย (Connect MQTT)"**
+9. เมื่อบอร์ดเชื่อมต่อ WiFi ได้ ข้อมูลระยะทางจะถูกส่งขึ้นจอเรดาร์บนเว็บแบบ Real-time ทันที!
 
 ---
 

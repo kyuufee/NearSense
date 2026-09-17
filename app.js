@@ -11,6 +11,12 @@ const state = {
   isDemoMode: false,      // Demo / Simulation mode
   isAudioMuted: true,     // Web Audio sound toggle (defaults to muted for browser autoplay policy)
   
+  // Wireless MQTT State
+  isMqttConnected: false,
+  mqttClient: null,
+  mqttTopic: 'kidbright32/proximity/default',
+  mqttBrokerUrl: 'wss://broker.hivemq.com:8884/mqtt',
+  
   // Stats
   minDistance: null,
   maxDistance: null,
@@ -62,6 +68,21 @@ const el = {
   btnOpenPinout: document.getElementById('btnOpenPinout'),
   btnCloseModal: document.getElementById('btnCloseModal'),
   pinoutModal: document.getElementById('pinoutModal'),
+  
+  // Wireless MQTT Elements
+  btnOpenMqtt: document.getElementById('btnOpenMqtt'),
+  btnOpenMqttText: document.getElementById('btnOpenMqttText'),
+  mqttModal: document.getElementById('mqttModal'),
+  btnCloseMqttModal: document.getElementById('btnCloseMqttModal'),
+  mqttTopicInput: document.getElementById('mqttTopicInput'),
+  btnRandomTopic: document.getElementById('btnRandomTopic'),
+  btnCopyTopic: document.getElementById('btnCopyTopic'),
+  btnToggleMqttConnect: document.getElementById('btnToggleMqttConnect'),
+  btnToggleMqttConnectText: document.getElementById('btnToggleMqttConnectText'),
+  modalMqttStatus: document.getElementById('modalMqttStatus'),
+  modalMqttStatusText: document.getElementById('modalMqttStatusText'),
+  arduinoCodeSnippet: document.getElementById('arduinoCodeSnippet'),
+  btnCopyArduinoCode: document.getElementById('btnCopyArduinoCode'),
   
   // Simulation Dock
   simulationDock: document.getElementById('simulationDock'),
@@ -755,6 +776,10 @@ async function connectWebSerial() {
     return;
   }
   
+  if (state.isMqttConnected) {
+    disconnectMQTT();
+  }
+  
   try {
     // Prompt user to pick USB Port (KidBright32 CP210x or CH340)
     serialPort = await navigator.serial.requestPort();
@@ -795,7 +820,7 @@ async function disconnectWebSerial() {
   }
   state.isConnected = false;
   updateConnectionStatus('disconnected', 'ไม่ได้เชื่อมต่อ');
-  el.btnConnectSerialText.textContent = 'เชื่อมต่อ USB (Serial)';
+  el.btnConnectSerialText.textContent = 'เชื่อมต่อสาย USB';
   el.btnConnectSerial.classList.remove('connected-btn');
 }
 
@@ -853,6 +878,7 @@ function toggleDemoMode(forceState) {
   
   if (state.isDemoMode) {
     if (state.isConnected) disconnectWebSerial();
+    if (state.isMqttConnected) disconnectMQTT();
     el.btnToggleDemo.classList.add('active');
     el.simulationDock.classList.remove('hidden');
     updateConnectionStatus('simulating', 'กำลังใช้งานโหมดจำลอง (DEMO)');
@@ -895,6 +921,273 @@ function exportLogsCSV() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ==========================================================================
+// WIRELESS MQTT IoT SYSTEM (HIVEMQ PUBLIC BROKER / WEBSOCKETS)
+// ==========================================================================
+function getArduinoFirmwareCode(topic) {
+  return `/**
+ * ============================================================================
+ * ระบบตรวจจับวัตถุเมื่อเข้าใกล้ (KidBright32 ESP32 + HC-SR04)
+ * การเชื่อมต่อ: ไร้สายผ่าน WiFi + MQTT (HiveMQ Public Broker)
+ * ============================================================================
+ * ไลบรารีที่ต้องติดตั้งใน Arduino IDE: PubSubClient (by Nick O'Leary)
+ */
+
+#include <WiFi.h>
+#include <PubSubClient.h>
+
+const char* ssid        = "YOUR_WIFI_SSID";       // ใส่ชื่อ WiFi (2.4GHz หรือ Hotspot)
+const char* password    = "YOUR_WIFI_PASSWORD";   // ใส่รหัสผ่าน WiFi
+const char* mqtt_server = "broker.hivemq.com";
+const int   mqtt_port   = 1883;
+const char* mqtt_topic  = "${topic}";
+
+#define TRIG_PIN     18   // HC-SR04 Trig
+#define ECHO_PIN     19   // HC-SR04 Echo
+#define BUZZER_PIN   13   // KidBright Buzzer
+#define LED_WIFI_PIN  2   // KidBright LED WIFI (Active LOW)
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+unsigned long lastPublish = 0;
+unsigned long lastBlink = 0;
+bool blinkState = false;
+
+void setup_wifi() {
+  Serial.print("Connecting to WiFi: ");
+  Serial.println(ssid);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\\nWiFi Connected! IP: " + WiFi.localIP().toString());
+}
+
+void reconnectMQTT() {
+  while (!client.connected()) {
+    String clientId = "KB32-" + String(random(0xffff), HEX);
+    if (client.connect(clientId.c_str())) {
+      Serial.println("MQTT Connected! Ready to publish to: ${topic}");
+    } else {
+      delay(3000);
+    }
+  }
+}
+
+float readUltrasonic() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  long d = pulseIn(ECHO_PIN, HIGH, 30000);
+  if (d == 0) return 999.0;
+  return (d * 0.0343) / 2.0;
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  pinMode(LED_WIFI_PIN, OUTPUT);
+  digitalWrite(LED_WIFI_PIN, HIGH); // ดับไฟ
+  digitalWrite(BUZZER_PIN, LOW);   // ปิดเสียง
+
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port);
+}
+
+void loop() {
+  if (WiFi.status() != WL_CONNECTED) setup_wifi();
+  if (!client.connected()) reconnectMQTT();
+  client.loop();
+
+  unsigned long now = millis();
+  float cm = readUltrasonic();
+
+  // ตรรกะไฟและเสียง 3 ระดับ
+  if (cm <= 6.0 && cm > 0) {
+    digitalWrite(LED_WIFI_PIN, LOW); // ติดสว่างค้าง
+    digitalWrite(BUZZER_PIN, HIGH);  // ดังค้างยาว
+  } else if (cm > 6.0 && cm <= 18.0) {
+    int interval = map((int)cm, 7, 18, 70, 300);
+    if (now - lastBlink >= interval) {
+      lastBlink = now;
+      blinkState = !blinkState;
+      digitalWrite(LED_WIFI_PIN, blinkState ? LOW : HIGH);
+      digitalWrite(BUZZER_PIN, blinkState ? HIGH : LOW);
+    }
+  } else {
+    digitalWrite(LED_WIFI_PIN, HIGH);
+    digitalWrite(BUZZER_PIN, LOW);
+  }
+
+  // ส่งข้อมูลขึ้น MQTT ทุก 120ms
+  if (now - lastPublish >= 120) {
+    lastPublish = now;
+    char payload[16];
+    snprintf(payload, sizeof(payload), "%.1f", cm);
+    client.publish(mqtt_topic, payload);
+    Serial.printf("Distance: %.1f cm -> Published to %s\\n", cm, mqtt_topic);
+  }
+}`;
+}
+
+function updateArduinoCodeView() {
+  if (el.arduinoCodeSnippet) {
+    el.arduinoCodeSnippet.textContent = getArduinoFirmwareCode(state.mqttTopic);
+  }
+}
+
+function generateRandomTopic() {
+  const hex = Math.random().toString(16).substring(2, 6);
+  return `kidbright32/proximity/kb_${hex}`;
+}
+
+function initMqtt() {
+  // Load saved topic or set default
+  const savedTopic = localStorage.getItem('kb_mqtt_topic');
+  if (savedTopic) {
+    state.mqttTopic = savedTopic;
+  } else {
+    state.mqttTopic = generateRandomTopic();
+  }
+  
+  if (el.mqttTopicInput) {
+    el.mqttTopicInput.value = state.mqttTopic;
+  }
+  
+  updateArduinoCodeView();
+}
+
+function toggleMqttConnection() {
+  if (state.isMqttConnected) {
+    disconnectMQTT();
+  } else {
+    connectMQTT();
+  }
+}
+
+function connectMQTT() {
+  if (typeof mqtt === 'undefined') {
+    alert('ไม่สามารถโหลดโมดูล MQTT.js ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตบนอุปกรณ์ของคุณ');
+    return;
+  }
+
+  // If other connections are active, close them first
+  if (state.isConnected) disconnectWebSerial();
+  if (state.isDemoMode) toggleDemoMode(false);
+
+  const topic = el.mqttTopicInput ? el.mqttTopicInput.value.trim() : state.mqttTopic;
+  if (!topic) {
+    alert('กรุณาระบุชื่อ Topic สำหรับเชื่อมต่อ');
+    return;
+  }
+
+  state.mqttTopic = topic;
+  localStorage.setItem('kb_mqtt_topic', topic);
+  updateArduinoCodeView();
+
+  // Set connecting status
+  updateConnectionStatus('simulating', `กำลังเชื่อมต่อ MQTT Broker...`);
+  if (el.modalMqttStatus) {
+    el.modalMqttStatus.className = 'status-pill simulating';
+    el.modalMqttStatusText.textContent = 'กำลังเชื่อมต่อ Broker...';
+  }
+  if (el.btnToggleMqttConnectText) {
+    el.btnToggleMqttConnectText.textContent = 'กำลังเชื่อมต่อ...';
+  }
+
+  try {
+    const clientId = 'kb_web_' + Math.random().toString(16).substring(2, 10);
+    state.mqttClient = mqtt.connect(state.mqttBrokerUrl, {
+      clientId: clientId,
+      clean: true,
+      connectTimeout: 7000,
+      reconnectPeriod: 4000
+    });
+
+    state.mqttClient.on('connect', () => {
+      state.isMqttConnected = true;
+      state.mqttClient.subscribe(state.mqttTopic, (err) => {
+        if (err) {
+          console.error('MQTT Subscription Error:', err);
+          return;
+        }
+        console.log(`Subscribed to topic: ${state.mqttTopic}`);
+      });
+
+      updateConnectionStatus('mqtt-connected', `เชื่อมต่อออนไลน์แล้ว (${state.mqttTopic})`);
+      if (el.btnOpenMqtt) el.btnOpenMqtt.classList.add('connected-btn');
+      if (el.btnOpenMqttText) el.btnOpenMqttText.textContent = 'ออนไลน์ (ต่ออยู่)';
+      if (el.modalMqttStatus) {
+        el.modalMqttStatus.className = 'status-pill mqtt-connected';
+        el.modalMqttStatusText.textContent = 'เชื่อมต่อแล้ว (Connected)';
+      }
+      if (el.btnToggleMqttConnect) el.btnToggleMqttConnect.classList.add('connected-btn');
+      if (el.btnToggleMqttConnectText) el.btnToggleMqttConnectText.textContent = 'ตัดการเชื่อมต่อไร้สาย (Disconnect)';
+    });
+
+    state.mqttClient.on('message', (topic, message) => {
+      const text = message.toString().trim();
+      let cm = NaN;
+      if (text.startsWith('{')) {
+        try {
+          const data = JSON.parse(text);
+          if (data.distance !== undefined) cm = parseFloat(data.distance);
+        } catch (e) {}
+      }
+      if (isNaN(cm)) {
+        const match = text.match(/Distance:\s*([0-9.]+)\s*cm/i) || text.match(/([0-9.]+)/);
+        if (match && match[1]) cm = parseFloat(match[1]);
+      }
+
+      if (!isNaN(cm)) {
+        processDistance(cm);
+      }
+    });
+
+    state.mqttClient.on('error', (err) => {
+      console.error('MQTT Client Error:', err);
+      if (el.modalMqttStatusText) el.modalMqttStatusText.textContent = 'เกิดข้อผิดพลาด: ' + (err.message || 'Error');
+    });
+
+    state.mqttClient.on('close', () => {
+      if (!state.isMqttConnected) return;
+      if (el.modalMqttStatusText) el.modalMqttStatusText.textContent = 'การเชื่อมต่อถูกตัด (กำลังลองใหม่...)';
+    });
+
+  } catch (err) {
+    console.error('MQTT Setup Error:', err);
+    alert('ไม่สามารถเชื่อมต่อ MQTT ได้: ' + err.message);
+    disconnectMQTT();
+  }
+}
+
+function disconnectMQTT() {
+  if (state.mqttClient) {
+    try {
+      state.mqttClient.end(true);
+    } catch (e) {}
+    state.mqttClient = null;
+  }
+  state.isMqttConnected = false;
+
+  updateConnectionStatus('disconnected', 'ไม่ได้เชื่อมต่อ');
+  if (el.btnOpenMqtt) el.btnOpenMqtt.classList.remove('connected-btn');
+  if (el.btnOpenMqttText) el.btnOpenMqttText.textContent = 'เชื่อมต่อออนไลน์ (WiFi)';
+  if (el.modalMqttStatus) {
+    el.modalMqttStatus.className = 'status-pill disconnected';
+    el.modalMqttStatusText.textContent = 'ไม่ได้เชื่อมต่อ';
+  }
+  if (el.btnToggleMqttConnect) el.btnToggleMqttConnect.classList.remove('connected-btn');
+  if (el.btnToggleMqttConnectText) el.btnToggleMqttConnectText.textContent = 'เริ่มรับข้อมูลไร้สาย (Connect MQTT)';
 }
 
 // ==========================================================================
@@ -998,6 +1291,87 @@ function initEvents() {
       el.pinoutModal.classList.add('hidden');
     }
   });
+
+  // Wireless MQTT Modal
+  if (el.btnOpenMqtt) {
+    el.btnOpenMqtt.addEventListener('click', () => {
+      initAudio();
+      el.mqttModal.classList.remove('hidden');
+    });
+  }
+  if (el.btnCloseMqttModal) {
+    el.btnCloseMqttModal.addEventListener('click', () => {
+      el.mqttModal.classList.add('hidden');
+    });
+  }
+  if (el.mqttModal) {
+    el.mqttModal.addEventListener('click', (e) => {
+      if (e.target === el.mqttModal) {
+        el.mqttModal.classList.add('hidden');
+      }
+    });
+  }
+
+  // Toggle MQTT Connect
+  if (el.btnToggleMqttConnect) {
+    el.btnToggleMqttConnect.addEventListener('click', () => {
+      initAudio();
+      toggleMqttConnection();
+    });
+  }
+
+  // Random Topic Button
+  if (el.btnRandomTopic) {
+    el.btnRandomTopic.addEventListener('click', () => {
+      const newTopic = generateRandomTopic();
+      state.mqttTopic = newTopic;
+      if (el.mqttTopicInput) el.mqttTopicInput.value = newTopic;
+      localStorage.setItem('kb_mqtt_topic', newTopic);
+      updateArduinoCodeView();
+      if (state.isMqttConnected) {
+        // Reconnect with new topic
+        connectMQTT();
+      }
+    });
+  }
+
+  // Copy Topic Button
+  if (el.btnCopyTopic) {
+    el.btnCopyTopic.addEventListener('click', () => {
+      const topic = el.mqttTopicInput ? el.mqttTopicInput.value.trim() : state.mqttTopic;
+      navigator.clipboard.writeText(topic).then(() => {
+        const oldText = el.btnCopyTopic.textContent;
+        el.btnCopyTopic.textContent = '✅ คัดลอกแล้ว!';
+        setTimeout(() => { el.btnCopyTopic.textContent = oldText; }, 1500);
+      }).catch(() => {
+        alert('คัดลอกสำเร็จ: ' + topic);
+      });
+    });
+  }
+
+  // Copy Arduino Code Button
+  if (el.btnCopyArduinoCode) {
+    el.btnCopyArduinoCode.addEventListener('click', () => {
+      const code = getArduinoFirmwareCode(state.mqttTopic);
+      navigator.clipboard.writeText(code).then(() => {
+        const oldText = el.btnCopyArduinoCode.textContent;
+        el.btnCopyArduinoCode.textContent = '✅ คัดลอกโค้ดแล้ว!';
+        setTimeout(() => { el.btnCopyArduinoCode.textContent = oldText; }, 1800);
+      }).catch(() => {
+        alert('กรุณาคลุมดำเพื่อคัดลอกโค้ดจากกล่องข้อความ');
+      });
+    });
+  }
+
+  // Topic Input Change
+  if (el.mqttTopicInput) {
+    el.mqttTopicInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      state.mqttTopic = val || 'kidbright32/proximity/default';
+      localStorage.setItem('kb_mqtt_topic', state.mqttTopic);
+      updateArduinoCodeView();
+    });
+  }
   
   // Project Manual Toggle & Collapse
   if (el.btnCollapseManual && el.manualContent) {
@@ -1042,6 +1416,7 @@ function handleResize() {
 // Initial bootstrap
 window.addEventListener('DOMContentLoaded', () => {
   initEvents();
+  initMqtt();
   // Prepopulate timeline with initial safe distance
   for (let i = 0; i < 30; i++) {
     state.history.push({ time: Date.now() - (30 - i) * 1000, distance: 35 });
